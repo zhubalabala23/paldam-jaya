@@ -1,0 +1,1 @@
+export const weaponsDataStore = [{"id":1781956909399,"jenisBesar":"PISTOL","kaliber":"","jenis":"P-1 Pindad (Indonesia) - 9 mm","nomor":"69.6575","kondisi":"RR","top":"64","sucad":"Pena Pukul, Pisir","kesatuan":"BRIGIF-1/JS","ket":""}];
