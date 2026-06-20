@@ -304,7 +304,7 @@ function App() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
                 {profileImagesList.map((imgUrl, idx) => (
                   <div key={idx} style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                    <img src={imgUrl} alt={`Profil Paldam ${idx + 1}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
+                    <img src={imgUrl} alt={`Profil Paldam ${idx + 1}`} loading="lazy" decoding="async" style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
                     <div style={{ padding: '16px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
                       <p style={{ margin: 0, fontWeight: 'bold', color: '#475569' }}>(...)</p>
                     </div>
