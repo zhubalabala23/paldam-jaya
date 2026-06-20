@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
   PlusCircle, 
@@ -19,17 +19,50 @@ import mainLogo from './assets/images/image.png';
 import backgroundImageUrl from './assets/images/background.png';
 import { weaponsDataStore } from './data.js';
 
+import img1 from './assets/images/profil_paldam/ChatGPT Image Jun 8, 2026 at 07_30_46 PM.png';
+import img2 from './assets/images/profil_paldam/WhatsApp Image 2026-06-09 at 14.07.39.jpeg';
+import img3 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.19.21.jpeg';
+import img4 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.19.22.jpeg';
+import img5 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.25.47.jpeg';
+import img6 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.26.48.jpeg';
+import img7 from './assets/images/profil_paldam/WhatsApp Imagee 2026-06-20 at 19.19.21.jpeg';
+
+const profileImagesList = [img1, img2, img3, img4, img5, img6, img7];
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('paldam_auth') === 'true');
   const [loginPassword, setLoginPassword] = useState('');
   
-  const [activeTab, setActiveTab] = useState('pengisian');
-  const [verifiedKesatuan, setVerifiedKesatuan] = useState('');
+  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem('paldam_tab') || 'profil');
+  const [verifiedKesatuan, setVerifiedKesatuan] = useState(() => sessionStorage.getItem('paldam_kesatuan') || '');
   const [printingKesatuan, setPrintingKesatuan] = useState(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [selectedVerifyKesatuan, setSelectedVerifyKesatuan] = useState('');
 
   const [weaponsData, setWeaponsData] = useState(weaponsDataStore || []);
+
+  useEffect(() => {
+    fetch('/api/loadData')
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          setWeaponsData(data);
+        }
+      })
+      .catch(err => console.error("Error loading initial data:", err));
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('paldam_auth', isAuthenticated);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    sessionStorage.setItem('paldam_tab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    sessionStorage.setItem('paldam_kesatuan', verifiedKesatuan);
+  }, [verifiedKesatuan]);
 
   const updateAndSaveWeaponsData = (newData) => {
     setWeaponsData(newData);
@@ -267,12 +300,17 @@ function App() {
               </div>
             </div>
 
-            <div style={{ marginTop: '32px' }}>
-              <img 
-                src={backgroundImageUrl} 
-                alt="Profil Paldam" 
-                style={{ width: '100%', height: 'auto', borderRadius: '12px', objectFit: 'cover' }} 
-              />
+            <div style={{ marginTop: '40px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
+                {profileImagesList.map((imgUrl, idx) => (
+                  <div key={idx} style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                    <img src={imgUrl} alt={`Profil Paldam ${idx + 1}`} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
+                    <div style={{ padding: '16px', textAlign: 'center', backgroundColor: '#f8fafc' }}>
+                      <p style={{ margin: 0, fontWeight: 'bold', color: '#475569' }}>(...)</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
