@@ -189,8 +189,8 @@ function App() {
           <div className="login-icon-wrapper" style={{ padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
             <img src={mainLogo} alt="Logo Paldam Jaya" style={{ width: '80px', height: 'auto' }} />
           </div>
-          <h1 className="login-title">Sistem Informasi Materiil</h1>
-          <h2 className="login-subtitle">PALDAM JAYA</h2>
+          <h1 className="login-title">Sistem Informasi Materiil Senjata</h1>
+          <h2 className="login-subtitle">RAWATAN PALDAM JAYA</h2>
           
           <div className="login-form">
             <div className="login-form-group">
@@ -224,7 +224,7 @@ function App() {
       <div className="mobile-header" onClick={() => setIsMobileMenuOpen(true)} style={{ cursor: 'pointer' }}>
         <div className="mobile-header-brand">
           <img src={mainLogo} alt="Logo" style={{ width: '32px', height: 'auto' }} />
-          <span>DATA MATERIIL PALDAM JAYA</span>
+          <span>DATA MATERIIL SENJATA RAWATAN PALDAM JAYA</span>
         </div>
       </div>
 
@@ -240,7 +240,7 @@ function App() {
             <img src={mainLogo} alt="Logo" style={{ width: '32px', height: 'auto' }} />
           </div>
           <div className="brand-text">
-            <span className="brand-title">DATA MATERIIL</span>
+            <span className="brand-title">DATA MATERIIL SENJATA RAWATAN</span>
             <span className="brand-subtitle">PALDAM JAYA</span>
           </div>
         </div>
