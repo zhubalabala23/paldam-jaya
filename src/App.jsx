@@ -17,7 +17,6 @@ import './index.css';
 import kaliberList from './kaliber_list.json';
 import mainLogo from './assets/images/image.png';
 import backgroundImageUrl from './assets/images/background.png';
-import { weaponsDataStore } from './data.js';
 import { ref, onValue, set } from 'firebase/database';
 import { db } from './firebase.js';
 
@@ -62,7 +61,7 @@ function App() {
   const [selectedVerifyKesatuan, setSelectedVerifyKesatuan] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [weaponsData, setWeaponsData] = useState(weaponsDataStore || []);
+  const [weaponsData, setWeaponsData] = useState([]);
 
   useEffect(() => {
     const weaponsRef = ref(db, 'weapons');
