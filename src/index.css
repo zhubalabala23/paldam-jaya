@@ -19,6 +19,7 @@ body, html {
   background-color: var(--main-bg);
   color: var(--text-primary);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -29,6 +30,7 @@ body, html {
 .dashboard-container {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 
@@ -805,6 +807,15 @@ textarea.form-control {
   color: #475569;
 }
 
+.state-card.kondisi-b {
+  border-left-color: #059669;
+}
+
+.state-card.kondisi-b .state-card-badge {
+  background: #d1fae5;
+  color: #047857;
+}
+
 .state-card.kondisi-rr .state-card-badge {
   background: #fef08a;
   color: #854d0e;
@@ -1043,6 +1054,7 @@ textarea.form-control {
     transition: transform 0.3s ease-in-out;
     width: 280px;
     height: 100vh;
+    height: 100dvh;
   }
   
   .sidebar.open {

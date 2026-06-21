@@ -18,6 +18,8 @@ import kaliberList from './kaliber_list.json';
 import mainLogo from './assets/images/image.png';
 import backgroundImageUrl from './assets/images/background.png';
 import { weaponsDataStore } from './data.js';
+import { ref, onValue, set } from 'firebase/database';
+import { db } from './firebase.js';
 
 import img1 from './assets/images/profil_paldam/ChatGPT Image Jun 8, 2026 at 07_30_46 PM.png';
 import img2 from './assets/images/profil_paldam/WhatsApp Image 2026-06-09 at 14.07.39.jpeg';
@@ -26,6 +28,26 @@ import img4 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.
 import img5 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.25.47.jpeg';
 import img6 from './assets/images/profil_paldam/WhatsApp Image 2026-06-20 at 19.26.48.jpeg';
 import img7 from './assets/images/profil_paldam/WhatsApp Imagee 2026-06-20 at 19.19.21.jpeg';
+
+import logoBrigif1 from './assets/images/logo_kesatuan/BRIGIF-1PIK JS.png';
+import logoYonif201 from './assets/images/logo_kesatuan/YONIF 201JY.png';
+import logoYonif202 from './assets/images/logo_kesatuan/YONIF 202TM.png';
+import logoYonif203 from './assets/images/logo_kesatuan/YONIF 203AK.png';
+import logoBrigifTp44 from './assets/images/logo_kesatuan/BRIGIF TP 44.jpeg';
+import logoYonTp843 from './assets/images/logo_kesatuan/YON TP 843.png';
+import logoYonTp899 from './assets/images/logo_kesatuan/YON TP 899.png';
+import logoYonTp942 from './assets/images/logo_kesatuan/YON TP 942.jpeg';
+
+const kesatuanLogos = {
+  "BRIGIF-1/JS": logoBrigif1,
+  "YONIF 201/JY": logoYonif201,
+  "YONIF 202/TM": logoYonif202,
+  "YONIF 203/AK": logoYonif203,
+  "BRIGIF TP/44": logoBrigifTp44,
+  "YONIF TP/843": logoYonTp843,
+  "YONIF TP/899": logoYonTp899,
+  "YONIF TP/942": logoYonTp942
+};
 
 const profileImagesList = [img1, img2, img3, img4, img5, img6, img7];
 
@@ -43,14 +65,23 @@ function App() {
   const [weaponsData, setWeaponsData] = useState(weaponsDataStore || []);
 
   useEffect(() => {
-    fetch('/api/loadData')
-      .then(res => res.json())
-      .then(data => {
-        if (data && Array.isArray(data)) {
-          setWeaponsData(data);
-        }
-      })
-      .catch(err => console.error("Error loading initial data:", err));
+    const weaponsRef = ref(db, 'weapons');
+    const unsubscribe = onValue(weaponsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data)) {
+        setWeaponsData(data);
+      } else if (data) {
+        // If data is an object with numerical keys (sometimes arrays become objects in Firebase)
+        const dataArray = Object.values(data);
+        setWeaponsData(dataArray);
+      } else {
+        setWeaponsData([]); // Empty database
+      }
+    }, (error) => {
+      console.error("Error loading Firebase data:", error);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -67,10 +98,7 @@ function App() {
 
   const updateAndSaveWeaponsData = (newData) => {
     setWeaponsData(newData);
-    fetch('/api/saveData', {
-      method: 'POST',
-      body: JSON.stringify(newData)
-    }).catch(err => console.error("Error saving data:", err));
+    set(ref(db, 'weapons'), newData).catch(err => console.error("Error saving data to Firebase:", err));
   };
 
   const [formData, setFormData] = useState({
@@ -140,9 +168,11 @@ function App() {
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    setActiveTab('profil');
-    setVerifiedKesatuan('');
+    if (window.confirm("Apakah Anda yakin ingin keluar?")) {
+      setIsAuthenticated(false);
+      setActiveTab('profil');
+      setVerifiedKesatuan('');
+    }
   };
 
   if (!isAuthenticated) {
@@ -314,6 +344,49 @@ function App() {
               </div>
             </div>
 
+            {/* Video Demo */}
+            <div style={{ marginTop: '40px', width: '100%' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'stretch' }}>
+                {/* Kolom Kiri */}
+                <div style={{ flex: '1 1 500px', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <h2 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.25rem', fontWeight: 'bold', textAlign: 'left' }}>Demo Penggunaan</h2>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <video 
+                      controls 
+                      preload="auto"
+                      playsInline
+                      style={{ 
+                        width: '100%', 
+                        height: 'auto', 
+                        maxHeight: '80vh',
+                        borderRadius: '16px', 
+                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                        backgroundColor: '#000'
+                      }}
+                    >
+                      <source src="https://res.cloudinary.com/dcr2wy06s/video/upload/v1782030710/demo_penggunaan_paldam-jaya_l7vdrn.mp4" type="video/mp4" />
+                      Browser Anda tidak mendukung pemutaran video.
+                    </video>
+                  </div>
+                </div>
+
+                {/* Kolom Kanan */}
+                <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
+                  <h2 style={{ marginBottom: '16px', color: '#1e293b', fontSize: '1.25rem', fontWeight: 'bold', textAlign: 'left' }}>Poin-Poin Panduan:</h2>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: '100%', color: '#475569', backgroundColor: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                      <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', lineHeight: '1.5' }}>
+                      <li><strong>Login & Verifikasi:</strong> Gunakan password utama untuk masuk, lalu pilih kesatuan dan masukkan kode unik untuk mulai mengisi data.</li>
+                      <li><strong>Pengisian Data Senjata:</strong> Pastikan Anda memeriksa nomor fisik senjata dengan teliti sebelum memasukkan spesifikasi, nomor, dan kondisi.</li>
+                      <li><strong>Pencatatan Kondisi:</strong> Pilih kondisi (Baik, Rusak Ringan, Rusak Berat, Lain-Lain) dan catat kebutuhan Suku Cadang (Sucad) jika diperlukan.</li>
+                      <li><strong>Cetak & Rekap Laporan:</strong> Anda dapat melihat rekap per jenis, rekap nomor senjata per kesatuan, dan langsung mencetaknya melalui tombol cetak di sistem.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
                 {profileImagesList.map((imgUrl, idx) => (
@@ -345,15 +418,15 @@ function App() {
                       className="kesatuan-card-btn"
                       onClick={() => {
                         setSelectedVerifyKesatuan(k);
-                        // Show modal by directly rendering it with state
                         setVerificationCode('');
                         document.body.classList.add('modal-open'); 
-                        // Using a simple local state variable inside component is better, but since it's missing let's add it or rely on a truthy selectedVerifyKesatuan
-                        // Wait, I didn't add showVerifyModal state to App yet.
-                        // I will use selectedVerifyKesatuan as the trigger for the modal.
                       }}
                     >
-                      <Shield size={32} strokeWidth={2} />
+                      {kesatuanLogos[k] ? (
+                        <img src={kesatuanLogos[k]} alt={`Logo ${k}`} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                      ) : (
+                        <Shield size={32} strokeWidth={2} />
+                      )}
                       <span>{k}</span>
                     </button>
                   ))}
@@ -386,12 +459,14 @@ function App() {
                             onChange={(e) => setVerificationCode(e.target.value)} 
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                if(selectedVerifyKesatuan && verificationCode) {
+                                if (!selectedVerifyKesatuan) {
+                                  alert("Harap pilih kesatuan terlebih dahulu!");
+                                } else if (verificationCode !== '123') {
+                                  alert("Kode verifikasi salah!");
+                                } else {
                                   setVerifiedKesatuan(selectedVerifyKesatuan);
                                   setSelectedVerifyKesatuan('');
                                   setVerificationCode('');
-                                } else {
-                                  alert("Harap pilih kesatuan dan masukkan kode verifikasi!");
                                 }
                               }
                             }}
@@ -401,12 +476,14 @@ function App() {
                           className="btn-submit-form" 
                           style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }} 
                           onClick={() => {
-                            if(selectedVerifyKesatuan && verificationCode) {
+                            if (!selectedVerifyKesatuan) {
+                              alert("Harap pilih kesatuan terlebih dahulu!");
+                            } else if (verificationCode !== '123') {
+                              alert("Kode verifikasi salah!");
+                            } else {
                               setVerifiedKesatuan(selectedVerifyKesatuan);
                               setSelectedVerifyKesatuan('');
                               setVerificationCode('');
-                            } else {
-                              alert("Harap pilih kesatuan dan masukkan kode verifikasi!");
                             }
                           }}
                         >
@@ -941,7 +1018,7 @@ function App() {
         {activeTab === 'kondisi' && (
           <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
             <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
-              <h2 className="panel-title">Data Kondisi Senjata (RR, RB, LL)</h2>
+              <h2 className="panel-title">Data Kondisi Senjata (Seluruh Kondisi)</h2>
               <button className="btn-print" onClick={() => window.print()}>
                 <Printer size={18} />
                 <span>Cetak</span>
@@ -949,12 +1026,12 @@ function App() {
             </div>
             
             <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
-               {weaponsData.filter(w => w.kondisi !== 'B').length === 0 ? (
+               {weaponsData.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-                    <p>Tidak ada data senjata dengan kondisi rusak atau lainnya saat ini.</p>
+                    <p>Tidak ada data senjata saat ini.</p>
                   </div>
                ) : (
-                  weaponsData.filter(w => w.kondisi !== 'B').map((w, idx) => (
+                  [...weaponsData].reverse().map((w, idx) => (
                      <div key={idx} className={`state-card kondisi-${w.kondisi.toLowerCase()}`}>
                         <div className="state-card-header">
                            <span className="state-card-nomor">No. Senjata: {w.nomor}</span>
