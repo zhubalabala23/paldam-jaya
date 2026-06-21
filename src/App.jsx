@@ -38,6 +38,7 @@ function App() {
   const [printingKesatuan, setPrintingKesatuan] = useState(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [selectedVerifyKesatuan, setSelectedVerifyKesatuan] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [weaponsData, setWeaponsData] = useState(weaponsDataStore || []);
 
@@ -189,8 +190,21 @@ function App() {
 
   return (
     <div className="dashboard-container">
+      {/* Mobile Header */}
+      <div className="mobile-header" onClick={() => setIsMobileMenuOpen(true)} style={{ cursor: 'pointer' }}>
+        <div className="mobile-header-brand">
+          <img src={mainLogo} alt="Logo" style={{ width: '32px', height: 'auto' }} />
+          <span>DATA MATERIIL PALDAM JAYA</span>
+        </div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="brand-icon" style={{ padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
             <img src={mainLogo} alt="Logo" style={{ width: '32px', height: 'auto' }} />
@@ -204,7 +218,7 @@ function App() {
         <nav className="sidebar-menu">
           <button 
             className={`menu-item ${activeTab === 'profil' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profil')}
+            onClick={() => { setActiveTab('profil'); setIsMobileMenuOpen(false); }}
           >
             <Shield size={18} />
             <span>Profil Paldam</span>
@@ -212,7 +226,7 @@ function App() {
           
           <button 
             className={`menu-item ${activeTab === 'pengisian' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pengisian')}
+            onClick={() => { setActiveTab('pengisian'); setIsMobileMenuOpen(false); }}
           >
             <PlusCircle size={18} />
             <span>Halaman Pengisian</span>
@@ -222,7 +236,7 @@ function App() {
 
           <button 
             className={`menu-item ${activeTab === 'jenis' ? 'active' : ''}`}
-            onClick={() => setActiveTab('jenis')}
+            onClick={() => { setActiveTab('jenis'); setIsMobileMenuOpen(false); }}
           >
             <List size={18} />
             <span>Data Per Jenis Senjata</span>
@@ -230,7 +244,7 @@ function App() {
 
           <button 
             className={`menu-item ${activeTab === 'rekap' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rekap')}
+            onClick={() => { setActiveTab('rekap'); setIsMobileMenuOpen(false); }}
           >
             <FileText size={18} />
             <span>Rekap Per Kesatuan</span>
@@ -238,7 +252,7 @@ function App() {
 
           <button 
             className={`menu-item ${activeTab === 'nomor' ? 'active' : ''}`}
-            onClick={() => setActiveTab('nomor')}
+            onClick={() => { setActiveTab('nomor'); setIsMobileMenuOpen(false); }}
           >
             <Users size={18} />
             <span>No. Senjata Per Kesatuan</span>
@@ -246,7 +260,7 @@ function App() {
 
           <button 
             className={`menu-item ${activeTab === 'rawatan' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rawatan')}
+            onClick={() => { setActiveTab('rawatan'); setIsMobileMenuOpen(false); }}
           >
             <BookOpen size={18} />
             <span>Rekapjat Rawatan Paldam Jaya</span>
@@ -254,7 +268,7 @@ function App() {
           
           <button 
             className={`menu-item ${activeTab === 'kondisi' ? 'active' : ''}`}
-            onClick={() => setActiveTab('kondisi')}
+            onClick={() => { setActiveTab('kondisi'); setIsMobileMenuOpen(false); }}
           >
             <TriangleAlert size={18} />
             <span>Data Kondisi Senjata</span>
@@ -492,8 +506,8 @@ function App() {
         )}
 
         {activeTab === 'jenis' && (
-          <div className="welcome-card">
-            <div className="panel-header">
+          <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+            <div className="panel-header" style={{ flexShrink: 0 }}>
               <h2 className="panel-title">Data Senjata Sesuai Jenis</h2>
               <button className="btn-print" onClick={() => window.print()}>
                 <Printer size={18} />
@@ -501,7 +515,7 @@ function App() {
               </button>
             </div>
 
-            <div className="data-table-container">
+            <div className="data-table-container" style={{ flexGrow: 1, overflowY: 'auto' }}>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -554,12 +568,13 @@ function App() {
         )}
 
         {activeTab === 'rekap' && (
-          <div className="welcome-card" style={{ backgroundColor: '#ffffff' }}>
-            <div className="panel-header">
+          <div className="welcome-card" style={{ backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
               <h2 className="panel-title">Data Rekap Per Kesatuan</h2>
             </div>
 
-            {kesatuanList.map(kesatuan => {
+            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
+              {kesatuanList.map(kesatuan => {
               const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
 
               const groupedByJenisBesar = kesatuanWeapons.reduce((acc, w) => {
@@ -677,16 +692,18 @@ function App() {
                 </div>
               );
             })}
+            </div>
           </div>
         )}
 
         {activeTab === 'nomor' && (
-          <div className="welcome-card" style={{ backgroundColor: '#ffffff' }}>
-            <div className="panel-header">
+          <div className="welcome-card" style={{ backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
               <h2 className="panel-title">Data Nomor Senjata Per Kesatuan</h2>
             </div>
 
-            {kesatuanList.map(kesatuan => {
+            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
+              {kesatuanList.map(kesatuan => {
               const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
               
               return (
@@ -766,13 +783,13 @@ function App() {
                 </div>
               );
             })}
-            
+            </div>
           </div>
         )}
 
         {activeTab === 'rawatan' && (
-          <div className="welcome-card" style={{ backgroundColor: '#ffffff' }}>
-            <div className="panel-header">
+          <div className="welcome-card" style={{ backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
               <h2 className="panel-title">REKAPJAT RAWATAN PALDAM JAYA</h2>
               <button className="btn-print" onClick={() => window.print()}>
                 <Printer size={18} />
@@ -780,7 +797,8 @@ function App() {
               </button>
             </div>
 
-            <div className="section-container">
+            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
+              <div className="section-container" style={{ marginBottom: 0 }}>
               <div className="section-header">
                 <h3 className="section-title">REKAPITULASI SENJATA RAWATAN</h3>
                 <h4 className="section-subtitle">PALDAM JAYA</h4>
@@ -916,16 +934,21 @@ function App() {
                 </table>
               </div>
             </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'kondisi' && (
-          <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden', padding: '32px' }}>
-            <div className="panel-header">
+          <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
               <h2 className="panel-title">Data Kondisi Senjata (RR, RB, LL)</h2>
+              <button className="btn-print" onClick={() => window.print()}>
+                <Printer size={18} />
+                <span>Cetak</span>
+              </button>
             </div>
             
-            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px', marginTop: '16px' }}>
+            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
                {weaponsData.filter(w => w.kondisi !== 'B').length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                     <p>Tidak ada data senjata dengan kondisi rusak atau lainnya saat ini.</p>

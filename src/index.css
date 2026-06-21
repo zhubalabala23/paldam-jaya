@@ -393,6 +393,19 @@ textarea.form-control {
   border-radius: 8px;
 }
 
+.data-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.data-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.data-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -531,6 +544,9 @@ textarea.form-control {
   border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
 }
 
 .form-header-bar {
@@ -540,6 +556,7 @@ textarea.form-control {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .form-header-bar h2 {
@@ -550,6 +567,20 @@ textarea.form-control {
 
 .form-body-content {
   padding: 32px 24px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.form-body-content::-webkit-scrollbar {
+  width: 8px;
+}
+.form-body-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.form-body-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .warning-banner {
@@ -674,6 +705,19 @@ textarea.form-control {
   .welcome-card {
     box-shadow: none;
     padding: 0;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .state-cards-container {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  
+  .state-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .data-table-container {
     border: 1px solid #000;
@@ -786,7 +830,9 @@ textarea.form-control {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
   background-color: var(--main-bg);
 }
 
@@ -903,3 +949,157 @@ textarea.form-control {
   background-color: #065f46;
 }
 
+/* Mobile Responsive Login */
+@media (max-width: 640px) {
+  .login-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+  
+  .login-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+  }
+  
+  .login-title {
+    font-size: 1.25rem;
+  }
+  
+  .login-subtitle {
+    font-size: 0.75rem;
+    margin-bottom: 24px;
+  }
+  
+  .login-form-group {
+    margin-bottom: 20px;
+  }
+}
+
+/* Mobile Header (Hidden on Desktop) */
+.mobile-header {
+  display: none;
+  background-color: var(--sidebar-bg);
+  color: white;
+  padding: 16px 24px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.mobile-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.mobile-menu-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 90;
+  backdrop-filter: blur(2px);
+}
+
+/* Dashboard Responsive Layout */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .mobile-header {
+    display: flex;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    width: 280px;
+    height: 100vh;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-overlay {
+    display: block;
+  }
+  
+  .main-content {
+    padding: 20px;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .input-grid-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .kesatuan-selection-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .welcome-card {
+    padding: 20px;
+  }
+  
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  /* Reset card height for mobile conditionally */
+  .welcome-card[style*="calc(100vh - 80px)"],
+  .input-page-container {
+    height: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .kesatuan-selection-grid {
+    grid-template-columns: 1fr;
+  }
+}
