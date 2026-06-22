@@ -1014,39 +1014,44 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'kondisi' && (
-          <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
-              <h2 className="panel-title">Data Kondisi Senjata (Seluruh Kondisi)</h2>
-              <button className="btn-print" onClick={() => window.print()}>
-                <Printer size={18} />
-                <span>Cetak</span>
-              </button>
+        {activeTab === 'kondisi' && (() => {
+          const filteredWeapons = [...weaponsData]
+            .filter(w => w.kondisi !== 'B')
+            .reverse();
+          return (
+            <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
+              <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
+                <h2 className="panel-title">Data Kondisi Senjata (RR, RB, dll)</h2>
+                <button className="btn-print" onClick={() => window.print()}>
+                  <Printer size={18} />
+                  <span>Cetak</span>
+                </button>
+              </div>
+              
+              <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
+                 {filteredWeapons.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                      <p>Tidak ada data senjata dengan kondisi bermasalah (RR, RB, LL, dll) saat ini.</p>
+                    </div>
+                 ) : (
+                    filteredWeapons.map((w, idx) => (
+                       <div key={idx} className={`state-card kondisi-${w.kondisi.toLowerCase()}`}>
+                          <div className="state-card-header">
+                             <span className="state-card-nomor">No. Senjata: {w.nomor}</span>
+                             <span className="state-card-badge">Kondisi: {w.kondisi}</span>
+                          </div>
+                          <div className="state-card-body">
+                             <p><strong>Jenis Senjata:</strong> {w.jenis}</p>
+                             <p><strong>Kesatuan:</strong> {w.kesatuan}</p>
+                             <p><strong>Keterangan:</strong> {w.sucad && w.sucad !== '-' ? w.sucad : (w.ket || '-')}</p>
+                          </div>
+                       </div>
+                    ))
+                 )}
+              </div>
             </div>
-            
-            <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
-               {weaponsData.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-                    <p>Tidak ada data senjata saat ini.</p>
-                  </div>
-               ) : (
-                  [...weaponsData].reverse().map((w, idx) => (
-                     <div key={idx} className={`state-card kondisi-${w.kondisi.toLowerCase()}`}>
-                        <div className="state-card-header">
-                           <span className="state-card-nomor">No. Senjata: {w.nomor}</span>
-                           <span className="state-card-badge">Kondisi: {w.kondisi}</span>
-                        </div>
-                        <div className="state-card-body">
-                           <p><strong>Jenis Senjata:</strong> {w.jenis}</p>
-                           <p><strong>Kesatuan:</strong> {w.kesatuan}</p>
-                           <p><strong>Keterangan:</strong> {w.sucad && w.sucad !== '-' ? w.sucad : (w.ket || '-')}</p>
-                        </div>
-                     </div>
-                  ))
-               )}
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </main>
     </div>
   );
