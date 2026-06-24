@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Shield, 
   PlusCircle, 
@@ -11,7 +11,9 @@ import {
   X,
   Lock,
   BookOpen,
-  Trash2
+  Trash2,
+  Search,
+  ChevronDown
 } from 'lucide-react';
 import './index.css';
 import kaliberList from './kaliber_list.json';
@@ -62,6 +64,36 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [weaponsData, setWeaponsData] = useState([]);
+
+  // Search & Searchable Dropdown States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [spesifikasiSearch, setSpesifikasiSearch] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Clear search on tab change
+  useEffect(() => {
+    setSearchQuery('');
+  }, [activeTab]);
+
+  // Click outside to close searchable dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+        setIsFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const filteredOptions = kaliberList.filter(option => 
+    option.toLowerCase().includes(spesifikasiSearch.toLowerCase())
+  );
 
   useEffect(() => {
     const weaponsRef = ref(db, 'weapons');
@@ -526,12 +558,54 @@ function App() {
                       <input type="number" className="form-control" placeholder="Contoh: 120" value={formData.top} onChange={e => setFormData({...formData, top: e.target.value})} />
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group" style={{ position: 'relative' }} ref={dropdownRef}>
                       <label>Tipe Senjata</label>
-                      <select className="form-control" value={formData.spesifikasi} onChange={e => setFormData({...formData, spesifikasi: e.target.value})}>
-                        <option value="">-- Pilih Tipe Senjata --</option>
-                        {kaliberList.map((k, idx) => <option key={idx} value={k}>{k}</option>)}
-                      </select>
+                      <div className="searchable-dropdown-wrapper">
+                        <input 
+                          type="text" 
+                          className="form-control searchable-dropdown-input" 
+                          placeholder="Cari & Pilih Tipe Senjata..." 
+                          value={isFocused ? spesifikasiSearch : (formData.spesifikasi || '')}
+                          onFocus={() => {
+                            setIsFocused(true);
+                            setIsDropdownOpen(true);
+                          }}
+                          onChange={e => setSpesifikasiSearch(e.target.value)}
+                        />
+                        <button 
+                          type="button"
+                          className="dropdown-toggle-btn"
+                          onClick={() => {
+                            setIsDropdownOpen(!isDropdownOpen);
+                            setIsFocused(!isDropdownOpen);
+                          }}
+                        >
+                          <ChevronDown size={18} />
+                        </button>
+                      </div>
+                      
+                      {isDropdownOpen && (
+                        <div className="dropdown-options-list">
+                          {filteredOptions.length === 0 ? (
+                            <div className="dropdown-option-empty">Tidak ada tipe senjata yang cocok</div>
+                          ) : (
+                            filteredOptions.map((k, idx) => (
+                              <div 
+                                key={idx} 
+                                className={`dropdown-option-item ${formData.spesifikasi === k ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setFormData({...formData, spesifikasi: k});
+                                  setIsDropdownOpen(false);
+                                  setIsFocused(false);
+                                  setSpesifikasiSearch('');
+                                }}
+                              >
+                                {k}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-group">
@@ -583,12 +657,29 @@ function App() {
 
         {activeTab === 'jenis' && (
           <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-            <div className="panel-header" style={{ flexShrink: 0 }}>
+            <div className="panel-header" style={{ flexShrink: 0, display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 className="panel-title">Data Senjata Sesuai Jenis</h2>
-              <button className="btn-print" onClick={() => window.print()}>
-                <Printer size={18} />
-                <span>Cetak</span>
-              </button>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-end', maxWidth: '600px' }}>
+                <div className="search-container" style={{ maxWidth: '300px' }}>
+                  <Search size={18} className="search-icon" />
+                  <input 
+                    type="text" 
+                    className="search-input" 
+                    placeholder="Cari nomor, jenis, kesatuan..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button className="search-clear" onClick={() => setSearchQuery('')}>
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+                <button className="btn-print" onClick={() => window.print()}>
+                  <Printer size={18} />
+                  <span>Cetak</span>
+                </button>
+              </div>
             </div>
 
             <div className="data-table-container" style={{ flexGrow: 1, overflowY: 'auto' }}>
@@ -611,10 +702,33 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {weaponsData.length === 0 ? (
-                    <tr><td colSpan="10" className="text-center" style={{ padding: '20px' }}>Belum ada data senjata. Silakan tambahkan melalui Halaman Pengisian.</td></tr>
-                  ) : (
-                    [...weaponsData].sort((a,b) => (a.jenisBesar || '').localeCompare(b.jenisBesar || '') || (a.jenis || '').localeCompare(b.jenis || '')).map((weapon, index) => (
+                  {(() => {
+                    const filtered = weaponsData.filter(w => {
+                      if (!searchQuery) return true;
+                      const query = searchQuery.toLowerCase();
+                      return (
+                        (w.jenis && w.jenis.toLowerCase().includes(query)) ||
+                        (w.nomor && w.nomor.toLowerCase().includes(query)) ||
+                        (w.kondisi && w.kondisi.toLowerCase().includes(query)) ||
+                        (w.sucad && w.sucad.toLowerCase().includes(query)) ||
+                        (w.kesatuan && w.kesatuan.toLowerCase().includes(query)) ||
+                        (w.ket && w.ket.toLowerCase().includes(query))
+                      );
+                    });
+                    
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan="10" className="text-center" style={{ padding: '20px' }}>
+                            {weaponsData.length === 0 
+                              ? "Belum ada data senjata. Silakan tambahkan melalui Halaman Pengisian." 
+                              : "Tidak ada data senjata yang cocok dengan pencarian Anda."}
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return [...filtered].sort((a,b) => (a.jenisBesar || '').localeCompare(b.jenisBesar || '') || (a.jenis || '').localeCompare(b.jenis || '')).map((weapon, index) => (
                       <tr key={weapon.id}>
                         <td className="text-center">{index + 1}</td>
                         <td style={{ textTransform: 'uppercase' }}>{weapon.jenis}</td>
@@ -635,8 +749,8 @@ function App() {
                         <td>{weapon.kesatuan}</td>
                         <td>{weapon.ket}</td>
                       </tr>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -645,220 +759,300 @@ function App() {
 
         {activeTab === 'rekap' && (
           <div className="welcome-card" style={{ backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 className="panel-title">Data Rekap Per Kesatuan</h2>
+              <div className="search-container">
+                <Search size={18} className="search-icon" />
+                <input 
+                  type="text" 
+                  className="search-input" 
+                  placeholder="Cari nama kesatuan..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="search-clear" onClick={() => setSearchQuery('')}>
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
-              {kesatuanList.map(kesatuan => {
-              const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
-
-              const groupedByJenisBesar = kesatuanWeapons.reduce((acc, w) => {
-                const jb = w.jenisBesar || 'LAIN-LAIN';
-                if (!acc[jb]) acc[jb] = [];
-                acc[jb].push(w);
-                return acc;
-              }, {});
-
-              let noUrut = 1;
-
-              return (
-                <div key={kesatuan} className={`section-container ${printingKesatuan && printingKesatuan !== kesatuan ? 'print-hidden' : ''}`}>
-                  <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h3 className="section-title">DATA SENJATA SESUAI DENGAN KESATUAN</h3>
-                      <h4 className="section-subtitle">DATA SENJATA SATUAN : {kesatuan}</h4>
+              {(() => {
+                const filteredKesatuans = kesatuanList.filter(k => 
+                  !searchQuery || k.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                
+                if (filteredKesatuans.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                      Tidak ada kesatuan yang cocok dengan pencarian "{searchQuery}"
                     </div>
-                    {verifiedKesatuan === kesatuan && (
-                      <button className="btn-print" onClick={() => handlePrintKesatuan(kesatuan)}>
-                        <Printer size={18} />
-                        <span>Cetak</span>
-                      </button>
-                    )}
-                  </div>
+                  );
+                }
 
-                  <div className="data-table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th rowSpan="2" style={{ width: '50px', textAlign: 'center' }}>NO</th>
-                          <th rowSpan="2">JENIS MATERIIL</th>
-                          <th rowSpan="2" style={{ textAlign: 'center' }}>TOP</th>
-                          <th rowSpan="2" style={{ textAlign: 'center', width: '80px' }}>JUMLAH<br/>NYATA</th>
-                          <th colSpan="4" style={{ textAlign: 'center', backgroundColor: '#e2e8f0' }}>KONDISI</th>
-                          <th rowSpan="2" style={{ textAlign: 'center' }}>KURANG</th>
-                          <th rowSpan="2" style={{ textAlign: 'center' }}>LEBIH</th>
-                          <th rowSpan="2">KET</th>
-                        </tr>
-                        <tr className="kondisi-group">
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>B</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RR</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RB</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>LL</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {kesatuanWeapons.length === 0 ? (
-                          <tr><td colSpan="11" className="text-center" style={{ padding: '20px' }}>Belum ada data senjata.</td></tr>
-                        ) : Object.entries(groupedByJenisBesar).map(([jenisBesar, weaponsInJenisBesar]) => {
-                          const groupedByJenis = weaponsInJenisBesar.reduce((acc, w) => {
-                            if (!acc[w.jenis]) acc[w.jenis] = [];
-                            acc[w.jenis].push(w);
-                            return acc;
-                          }, {});
+                return filteredKesatuans.map(kesatuan => {
+                  const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
 
-                          const grandNyata = weaponsInJenisBesar.length;
-                          const grandB = weaponsInJenisBesar.filter(w => w.kondisi === 'B').length;
-                          const grandRR = weaponsInJenisBesar.filter(w => w.kondisi === 'RR').length;
-                          const grandRB = weaponsInJenisBesar.filter(w => w.kondisi === 'RB').length;
-                          const grandLL = weaponsInJenisBesar.filter(w => w.kondisi === 'LL').length;
-                          
-                          const grandTop = parseInt(weaponsInJenisBesar.find(w => w.top)?.top || 0);
-                          const jenisRows = [];
-                          
-                          Object.entries(groupedByJenis).forEach(([jenis, weaponsInJenis]) => {
-                            const nyata = weaponsInJenis.length;
-                            const b = weaponsInJenis.filter(w => w.kondisi === 'B').length;
-                            const rr = weaponsInJenis.filter(w => w.kondisi === 'RR').length;
-                            const rb = weaponsInJenis.filter(w => w.kondisi === 'RB').length;
-                            const ll = weaponsInJenis.filter(w => w.kondisi === 'LL').length;
-                            
-                            jenisRows.push(
-                              <tr key={jenis}>
-                                <td></td>
-                                <td className="sub-row-title">{jenis}</td>
-                                <td className="text-center">-</td>
-                                <td className="text-center">{nyata || ''}</td>
-                                <td className="text-center kondisi-b">{b || ''}</td>
-                                <td className="text-center kondisi-rr">{rr || ''}</td>
-                                <td className="text-center kondisi-rb">{rb || ''}</td>
-                                <td className="text-center kondisi-ll">{ll || ''}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                              </tr>
-                            );
-                          });
+                  const groupedByJenisBesar = kesatuanWeapons.reduce((acc, w) => {
+                    const jb = w.jenisBesar || 'LAIN-LAIN';
+                    if (!acc[jb]) acc[jb] = [];
+                    acc[jb].push(w);
+                    return acc;
+                  }, {});
 
-                          const grandKurang = grandTop > grandNyata ? grandTop - grandNyata : 0;
-                          const grandLebih = grandNyata > grandTop ? grandNyata - grandTop : 0;
+                  let noUrut = 1;
 
-                          return (
-                            <React.Fragment key={jenisBesar}>
-                              <tr className="group-row">
-                                <td className="text-center">{noUrut++}</td>
-                                <td>{jenisBesar}</td>
-                                <td className="text-center">{grandTop || ''}</td>
-                                <td className="text-center">{grandNyata || ''}</td>
-                                <td className="text-center kondisi-b">{grandB || ''}</td>
-                                <td className="text-center kondisi-rr">{grandRR || ''}</td>
-                                <td className="text-center kondisi-rb">{grandRB || ''}</td>
-                                <td className="text-center kondisi-ll">{grandLL || ''}</td>
-                                <td className="text-center text-red">{grandKurang || ''}</td>
-                                <td className="text-center text-blue">{grandLebih || ''}</td>
-                                <td></td>
-                              </tr>
-                              {jenisRows}
-                            </React.Fragment>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })}
+                  return (
+                    <div key={kesatuan} className={`section-container ${printingKesatuan && printingKesatuan !== kesatuan ? 'print-hidden' : ''}`}>
+                      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 className="section-title">DATA SENJATA SESUAI DENGAN KESATUAN</h3>
+                          <h4 className="section-subtitle">DATA SENJATA SATUAN : {kesatuan}</h4>
+                        </div>
+                        {verifiedKesatuan === kesatuan && (
+                          <button className="btn-print" onClick={() => handlePrintKesatuan(kesatuan)}>
+                            <Printer size={18} />
+                            <span>Cetak</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="data-table-container">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th rowSpan="2" style={{ width: '50px', textAlign: 'center' }}>NO</th>
+                              <th rowSpan="2">JENIS MATERIIL</th>
+                              <th rowSpan="2" style={{ textAlign: 'center' }}>TOP</th>
+                              <th rowSpan="2" style={{ textAlign: 'center', width: '80px' }}>JUMLAH<br/>NYATA</th>
+                              <th colSpan="4" style={{ textAlign: 'center', backgroundColor: '#e2e8f0' }}>KONDISI</th>
+                              <th rowSpan="2" style={{ textAlign: 'center' }}>KURANG</th>
+                              <th rowSpan="2" style={{ textAlign: 'center', width: '80px' }}>LEBIH</th>
+                              <th rowSpan="2">KET</th>
+                            </tr>
+                            <tr className="kondisi-group">
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>B</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RR</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RB</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>LL</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {kesatuanWeapons.length === 0 ? (
+                              <tr><td colSpan="11" className="text-center" style={{ padding: '20px' }}>Belum ada data senjata.</td></tr>
+                            ) : Object.entries(groupedByJenisBesar).map(([jenisBesar, weaponsInJenisBesar]) => {
+                              const groupedByJenis = weaponsInJenisBesar.reduce((acc, w) => {
+                                if (!acc[w.jenis]) acc[w.jenis] = [];
+                                acc[w.jenis].push(w);
+                                return acc;
+                              }, {});
+
+                              const grandNyata = weaponsInJenisBesar.length;
+                              const grandB = weaponsInJenisBesar.filter(w => w.kondisi === 'B').length;
+                              const grandRR = weaponsInJenisBesar.filter(w => w.kondisi === 'RR').length;
+                              const grandRB = weaponsInJenisBesar.filter(w => w.kondisi === 'RB').length;
+                              const grandLL = weaponsInJenisBesar.filter(w => w.kondisi === 'LL').length;
+                              
+                              const grandTop = parseInt(weaponsInJenisBesar.find(w => w.top)?.top || 0);
+                              const jenisRows = [];
+                              
+                              Object.entries(groupedByJenis).forEach(([jenis, weaponsInJenis]) => {
+                                const nyata = weaponsInJenis.length;
+                                const b = weaponsInJenis.filter(w => w.kondisi === 'B').length;
+                                const rr = weaponsInJenis.filter(w => w.kondisi === 'RR').length;
+                                const rb = weaponsInJenis.filter(w => w.kondisi === 'RB').length;
+                                const ll = weaponsInJenis.filter(w => w.kondisi === 'LL').length;
+                                
+                                jenisRows.push(
+                                  <tr key={jenis}>
+                                    <td></td>
+                                    <td className="sub-row-title">{jenis}</td>
+                                    <td className="text-center">-</td>
+                                    <td className="text-center">{nyata || ''}</td>
+                                    <td className="text-center kondisi-b">{b || ''}</td>
+                                    <td className="text-center kondisi-rr">{rr || ''}</td>
+                                    <td className="text-center kondisi-rb">{rb || ''}</td>
+                                    <td className="text-center kondisi-ll">{ll || ''}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                  </tr>
+                                );
+                              });
+
+                              const grandKurang = grandTop > grandNyata ? grandTop - grandNyata : 0;
+                              const grandLebih = grandNyata > grandTop ? grandNyata - grandTop : 0;
+
+                              return (
+                                <React.Fragment key={jenisBesar}>
+                                  <tr className="group-row">
+                                    <td className="text-center">{noUrut++}</td>
+                                    <td>{jenisBesar}</td>
+                                    <td className="text-center">{grandTop || ''}</td>
+                                    <td className="text-center">{grandNyata || ''}</td>
+                                    <td className="text-center kondisi-b">{grandB || ''}</td>
+                                    <td className="text-center kondisi-rr">{grandRR || ''}</td>
+                                    <td className="text-center kondisi-rb">{grandRB || ''}</td>
+                                    <td className="text-center kondisi-ll">{grandLL || ''}</td>
+                                    <td className="text-center text-red">{grandKurang || ''}</td>
+                                    <td className="text-center text-blue">{grandLebih || ''}</td>
+                                    <td></td>
+                                  </tr>
+                                  {jenisRows}
+                                </React.Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
 
         {activeTab === 'nomor' && (
           <div className="welcome-card" style={{ backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
+            <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 className="panel-title">Data Nomor Senjata Per Kesatuan</h2>
+              <div className="search-container">
+                <Search size={18} className="search-icon" />
+                <input 
+                  type="text" 
+                  className="search-input" 
+                  placeholder="Cari kesatuan, nomor, jenis, kondisi..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="search-clear" onClick={() => setSearchQuery('')}>
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '8px' }}>
-              {kesatuanList.map(kesatuan => {
-              const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
-              
-              return (
-                <div key={kesatuan} className={`section-container ${printingKesatuan && printingKesatuan !== kesatuan ? 'print-hidden' : ''}`}>
-                  <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h3 className="section-title">DATA NOMOR SENJATA PER KESATUAN</h3>
-                      <h4 className="section-subtitle">DATA SENJATA SATUAN : {kesatuan}</h4>
-                    </div>
-                    {verifiedKesatuan === kesatuan && (
-                      <button className="btn-print" onClick={() => handlePrintKesatuan(kesatuan)}>
-                        <Printer size={18} />
-                        <span>Cetak</span>
-                      </button>
-                    )}
-                  </div>
+              {(() => {
+                const globalFilteredCount = weaponsData.filter(w => {
+                  if (!searchQuery) return true;
+                  const query = searchQuery.toLowerCase();
+                  return (
+                    (w.jenis && w.jenis.toLowerCase().includes(query)) ||
+                    (w.nomor && w.nomor.toLowerCase().includes(query)) ||
+                    (w.kesatuan && w.kesatuan.toLowerCase().includes(query)) ||
+                    (w.kondisi && w.kondisi.toLowerCase().includes(query)) ||
+                    (w.sucad && w.sucad.toLowerCase().includes(query)) ||
+                    (w.ket && w.ket.toLowerCase().includes(query))
+                  );
+                }).length;
 
-                  <div className="data-table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th rowSpan="2" style={{ width: '50px', textAlign: 'center' }}>NO</th>
-                          <th rowSpan="2">JENIS SENJATA</th>
-                          <th rowSpan="2">NOMOR SENJATA</th>
-                          <th colSpan="4" style={{ textAlign: 'center', backgroundColor: '#e2e8f0' }}>KONDISI</th>
-                          <th rowSpan="2">KEB SUCAD</th>
-                          <th rowSpan="2">KESATUAN</th>
-                          <th rowSpan="2">KET</th>
-                          <th rowSpan="2" style={{ width: '60px', textAlign: 'center' }}>AKSI</th>
-                        </tr>
-                        <tr className="kondisi-group">
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>B</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RR</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RB</th>
-                          <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>LL</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {kesatuanWeapons.length === 0 ? (
-                          <tr><td colSpan="11" className="text-center" style={{ padding: '20px' }}>Belum ada data senjata.</td></tr>
-                        ) : kesatuanWeapons.map((weapon, index) => (
-                          <tr key={weapon.id}>
-                            <td className="text-center">{index + 1}</td>
-                            <td style={{ textTransform: 'uppercase' }}>{weapon.jenis}</td>
-                            <td>{weapon.nomor}</td>
-                            <td className="text-center kondisi-b">{weapon.kondisi === 'B' ? '1' : ''}</td>
-                            <td className="text-center kondisi-rr">{weapon.kondisi === 'RR' ? '1' : ''}</td>
-                            <td className="text-center kondisi-rb">{weapon.kondisi === 'RB' ? '1' : ''}</td>
-                            <td className="text-center kondisi-ll">{weapon.kondisi === 'LL' ? '1' : ''}</td>
-                            <td>
-                              {weapon.sucad.includes('\n') ? (
-                                weapon.sucad.split('\n').map((line, i, arr) => (
-                                  <div key={i} style={i < arr.length - 1 ? { paddingBottom: '4px', borderBottom: '1px solid #e5e7eb', marginBottom: '4px' } : {}}>
-                                    {line}
-                                  </div>
-                                ))
-                              ) : weapon.sucad}
-                            </td>
-                            <td>{weapon.kesatuan}</td>
-                            <td>{weapon.ket}</td>
-                            <td className="text-center">
-                              {verifiedKesatuan === weapon.kesatuan && (
-                                <button 
-                                  onClick={() => handleDeleteWeapon(weapon.id)}
-                                  style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                                  title="Hapus Data"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })}
+                if (weaponsData.length > 0 && globalFilteredCount === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                      Tidak ada data senjata yang cocok dengan pencarian "{searchQuery}"
+                    </div>
+                  );
+                }
+
+                return kesatuanList.map(kesatuan => {
+                  const kesatuanWeapons = weaponsData.filter(w => w.kesatuan === kesatuan);
+                  const filteredWeapons = kesatuanWeapons.filter(w => {
+                    if (!searchQuery) return true;
+                    const query = searchQuery.toLowerCase();
+                    return (
+                      (w.jenis && w.jenis.toLowerCase().includes(query)) ||
+                      (w.nomor && w.nomor.toLowerCase().includes(query)) ||
+                      (w.kondisi && w.kondisi.toLowerCase().includes(query)) ||
+                      (w.sucad && w.sucad.toLowerCase().includes(query)) ||
+                      (w.ket && w.ket.toLowerCase().includes(query))
+                    );
+                  });
+
+                  if (searchQuery && filteredWeapons.length === 0) return null;
+
+                  return (
+                    <div key={kesatuan} className={`section-container ${printingKesatuan && printingKesatuan !== kesatuan ? 'print-hidden' : ''}`}>
+                      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 className="section-title">DATA NOMOR SENJATA PER KESATUAN</h3>
+                          <h4 className="section-subtitle">DATA SENJATA SATUAN : {kesatuan}</h4>
+                        </div>
+                        {verifiedKesatuan === kesatuan && (
+                          <button className="btn-print" onClick={() => handlePrintKesatuan(kesatuan)}>
+                            <Printer size={18} />
+                            <span>Cetak</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="data-table-container">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th rowSpan="2" style={{ width: '50px', textAlign: 'center' }}>NO</th>
+                              <th rowSpan="2">JENIS SENJATA</th>
+                              <th rowSpan="2">NOMOR SENJATA</th>
+                              <th colSpan="4" style={{ textAlign: 'center', backgroundColor: '#e2e8f0' }}>KONDISI</th>
+                              <th rowSpan="2">KEB SUCAD</th>
+                              <th rowSpan="2">KESATUAN</th>
+                              <th rowSpan="2">KET</th>
+                              <th rowSpan="2" style={{ width: '60px', textAlign: 'center' }}>AKSI</th>
+                            </tr>
+                            <tr className="kondisi-group">
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>B</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RR</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>RB</th>
+                              <th style={{ backgroundColor: '#f8fafc', width: '40px' }}>LL</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredWeapons.length === 0 ? (
+                              <tr><td colSpan="11" className="text-center" style={{ padding: '20px' }}>Belum ada data senjata.</td></tr>
+                            ) : filteredWeapons.map((weapon, index) => (
+                              <tr key={weapon.id}>
+                                <td className="text-center">{index + 1}</td>
+                                <td style={{ textTransform: 'uppercase' }}>{weapon.jenis}</td>
+                                <td>{weapon.nomor}</td>
+                                <td className="text-center kondisi-b">{weapon.kondisi === 'B' ? '1' : ''}</td>
+                                <td className="text-center kondisi-rr">{weapon.kondisi === 'RR' ? '1' : ''}</td>
+                                <td className="text-center kondisi-rb">{weapon.kondisi === 'RB' ? '1' : ''}</td>
+                                <td className="text-center kondisi-ll">{weapon.kondisi === 'LL' ? '1' : ''}</td>
+                                <td>
+                                  {weapon.sucad.includes('\n') ? (
+                                    weapon.sucad.split('\n').map((line, i, arr) => (
+                                      <div key={i} style={i < arr.length - 1 ? { paddingBottom: '4px', borderBottom: '1px solid #e5e7eb', marginBottom: '4px' } : {}}>
+                                        {line}
+                                      </div>
+                                    ))
+                                  ) : weapon.sucad}
+                                </td>
+                                <td>{weapon.kesatuan}</td>
+                                <td>{weapon.ket}</td>
+                                <td className="text-center">
+                                  {verifiedKesatuan === weapon.kesatuan && (
+                                    <button 
+                                      onClick={() => handleDeleteWeapon(weapon.id)}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                                      title="Hapus Data"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
@@ -1017,15 +1211,44 @@ function App() {
         {activeTab === 'kondisi' && (() => {
           const filteredWeapons = [...weaponsData]
             .filter(w => w.kondisi !== 'B')
+            .filter(w => {
+              if (!searchQuery) return true;
+              const query = searchQuery.toLowerCase();
+              return (
+                (w.jenis && w.jenis.toLowerCase().includes(query)) ||
+                (w.nomor && w.nomor.toLowerCase().includes(query)) ||
+                (w.kesatuan && w.kesatuan.toLowerCase().includes(query)) ||
+                (w.kondisi && w.kondisi.toLowerCase().includes(query)) ||
+                (w.sucad && w.sucad.toLowerCase().includes(query)) ||
+                (w.ket && w.ket.toLowerCase().includes(query))
+              );
+            })
             .reverse();
           return (
             <div className="welcome-card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
-              <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px' }}>
+              <div className="panel-header" style={{ flexShrink: 0, marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 className="panel-title">Data Kondisi Senjata (RR, RB, dll)</h2>
-                <button className="btn-print" onClick={() => window.print()}>
-                  <Printer size={18} />
-                  <span>Cetak</span>
-                </button>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-end', maxWidth: '600px' }}>
+                  <div className="search-container" style={{ maxWidth: '300px' }}>
+                    <Search size={18} className="search-icon" />
+                    <input 
+                      type="text" 
+                      className="search-input" 
+                      placeholder="Cari kesatuan, nomor, jenis..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button className="search-clear" onClick={() => setSearchQuery('')}>
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <button className="btn-print" onClick={() => window.print()}>
+                    <Printer size={18} />
+                    <span>Cetak</span>
+                  </button>
+                </div>
               </div>
               
               <div className="state-cards-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '8px' }}>
