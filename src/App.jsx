@@ -34,20 +34,13 @@ import logoBrigif1 from './assets/images/logo_kesatuan/BRIGIF-1PIK JS.png';
 import logoYonif201 from './assets/images/logo_kesatuan/YONIF 201JY.png';
 import logoYonif202 from './assets/images/logo_kesatuan/YONIF 202TM.png';
 import logoYonif203 from './assets/images/logo_kesatuan/YONIF 203AK.png';
-import logoBrigifTp44 from './assets/images/logo_kesatuan/BRIGIF TP 44.jpeg';
-import logoYonTp843 from './assets/images/logo_kesatuan/YON TP 843.png';
-import logoYonTp899 from './assets/images/logo_kesatuan/YON TP 899.png';
-import logoYonTp942 from './assets/images/logo_kesatuan/YON TP 942.jpeg';
+
 
 const kesatuanLogos = {
   "BRIGIF-1/JS": logoBrigif1,
   "YONIF 201/JY": logoYonif201,
   "YONIF 202/TM": logoYonif202,
-  "YONIF 203/AK": logoYonif203,
-  "BRIGIF TP/44": logoBrigifTp44,
-  "YONIF TP/843": logoYonTp843,
-  "YONIF TP/899": logoYonTp899,
-  "YONIF TP/942": logoYonTp942
+  "YONIF 203/AK": logoYonif203
 };
 
 const profileImagesList = [img1, img2, img3, img4, img5, img6, img7];
@@ -170,7 +163,7 @@ function App() {
   ];
   
   const kesatuanList = [
-    "BRIGIF-1/JS", "YONIF 201/JY", "YONIF 202/TM", "YONIF 203/AK", "BRIGIF TP/44", "YONIF TP/843", "YONIF TP/899", "YONIF TP/942"
+    "BRIGIF-1/JS", "YONIF 201/JY", "YONIF 202/TM", "YONIF 203/AK"
   ];
 
   const handleLogin = () => {
