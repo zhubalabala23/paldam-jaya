@@ -140,6 +140,30 @@ function App() {
       alert("Mohon isi Spesifikasi dan Nomor Senjata!");
       return;
     }
+
+    // Check for duplicate weapon type and number (null-safe, case-insensitive, normalized formatting)
+    const normalizeSerial = (num) => {
+      if (!num) return '';
+      return num.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    };
+
+    const normalizeType = (type) => {
+      if (!type) return '';
+      return type.toString().toLowerCase().replace(/\s+/g, ' ').trim();
+    };
+
+    const isDuplicate = weaponsData.some(w => {
+      if (!w || !w.jenis || !w.nomor) return false;
+      const typeMatch = normalizeType(w.jenis) === normalizeType(formData.spesifikasi);
+      const serialMatch = normalizeSerial(w.nomor) === normalizeSerial(formData.nomor);
+      return typeMatch && serialMatch;
+    });
+
+    if (isDuplicate) {
+      alert(`Gagal menambahkan! Senjata dengan tipe "${formData.spesifikasi}" dan nomor "${formData.nomor}" sudah terdaftar.`);
+      return;
+    }
+
     const newWeapon = {
       id: Date.now(),
       jenisBesar: formData.jenis,
